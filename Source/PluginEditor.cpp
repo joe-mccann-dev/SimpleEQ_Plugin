@@ -9,6 +9,65 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+void LookAndFeel::drawRotarySlider(
+    juce::Graphics& g,
+    int x, 
+    int y, 
+    int width, 
+    int height,
+    float sliderPosProportional,
+    float rotaryStartAngle,
+    float rotaryEndAngle,
+    juce::Slider&)
+{
+    using namespace juce;
+    auto bounds = Rectangle<float>(x, y, width, height);
+    g.setColour(Colour(55u, 48u, 163u));
+    g.fillEllipse(bounds);
+
+    g.setColour(Colour(255u, 153u, 0u));
+    g.drawEllipse(bounds, 1.f);
+
+    auto center = bounds.getCentre();
+
+    Path p;
+    Rectangle<float> r;
+    r.setLeft(center.getX() - 2);
+    r.setRight(center.getX() + 2);
+    r.setTop(bounds.getY());
+    r.setBottom(center.getY());
+
+    p.addRectangle(r);
+    jassert(rotaryStartAngle < rotaryEndAngle);
+
+    auto sliderAngRad = jmap(sliderPosProportional, 0.f, 1.f, rotaryStartAngle, rotaryEndAngle);
+    p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
+    g.fillPath(p);
+}
+
+void RotarySliderWithLabels::paint(juce::Graphics& g) {
+    using namespace juce;
+
+    auto startAng = degreesToRadians(180.f + 45.f);
+    auto endAng = degreesToRadians(180.f - 45.f) + MathConstants<float>::twoPi;
+    auto range = getRange();
+    auto sliderBounds = getSliderBounds();
+
+    getLookAndFeel().drawRotarySlider(g,
+        sliderBounds.getX(),
+        sliderBounds.getY(),
+        sliderBounds.getWidth(),
+        sliderBounds.getHeight(),
+        jmap(getValue(), range.getStart(), range.getEnd(), 0.0, 1.0),
+        startAng,
+        endAng,
+        *this);
+}
+
+juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const {
+    return getLocalBounds();
+}
+//==============================================================================
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& p) : audioProcessor(p) {
     const auto& params = audioProcessor.getParameters();
     for (auto param : params)
@@ -55,7 +114,7 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(Colours::black);
+    g.fillAll(Colour(20u, 20u, 20u));
     auto responseArea = getLocalBounds();
     auto width = responseArea.getWidth();
 
@@ -114,7 +173,7 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
         responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
     }
 
-    g.setColour(Colours::orange);
+    g.setColour(Colour(255u, 153u, 0u));
     g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
     g.setColour(Colours::white);
     g.strokePath(responseCurve, PathStrokeType(2.f));
@@ -125,22 +184,22 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 //==============================================================================
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor(SimpleEQAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p),
-    peakFreqSlider(*audioProcessor.apvts.getParameter("Peak Freq"), "Hz"),
-    peakGainSlider(*audioProcessor.apvts.getParameter("Peak Gain"), "dB"),
-    peakQualitySlider(*audioProcessor.apvts.getParameter("Peak Quality"), ""),
-    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCut Freq"), "Hz"),
-    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCut Freq"), "Hz"),
-    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCut Slope"), "db/Oct"),
-    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCut Slope"), "dB/Oct"),
+    peakFreqSlider(*audioProcessor.apvts.getParameter("PeakFreq"), "Hz"),
+    peakGainSlider(*audioProcessor.apvts.getParameter("PeakGain"), "dB"),
+    peakQualitySlider(*audioProcessor.apvts.getParameter("PeakQuality"), ""),
+    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCutFreq"), "Hz"),
+    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCutFreq"), "Hz"),
+    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCutSlope"), "db/Oct"),
+    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCutSlope"), "dB/Oct"),
 
     responseCurveComponent(audioProcessor),
-    peakFreqSliderAttachment(audioProcessor.apvts, "Peak Freq", peakFreqSlider),
-    peakGainSliderAttachment(audioProcessor.apvts, "Peak Gain", peakGainSlider),
-    peakQualitySliderAttachment(audioProcessor.apvts, "Peak Quality", peakQualitySlider),
-    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCut Freq", lowCutFreqSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCut Freq", highCutFreqSlider),
-    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCut Slope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCut Slope", highCutSlopeSlider)
+    peakFreqSliderAttachment(audioProcessor.apvts, "PeakFreq", peakFreqSlider),
+    peakGainSliderAttachment(audioProcessor.apvts, "PeakGain", peakGainSlider),
+    peakQualitySliderAttachment(audioProcessor.apvts, "PeakQuality", peakQualitySlider),
+    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCutFreq", lowCutFreqSlider),
+    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCutFreq", highCutFreqSlider),
+    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCutSlope", lowCutSlopeSlider),
+    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCutSlope", highCutSlopeSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
@@ -162,7 +221,7 @@ void SimpleEQAudioProcessorEditor::paint (juce::Graphics& g)
 {
     using namespace juce;
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(Colours::black);
+    g.fillAll(Colour(20u, 20u, 20u));
 }
 
 void SimpleEQAudioProcessorEditor::resized()
