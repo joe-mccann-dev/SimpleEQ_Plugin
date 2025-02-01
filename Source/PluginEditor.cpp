@@ -52,6 +52,8 @@ void RotarySliderWithLabels::paint(juce::Graphics& g) {
     auto endAng = degreesToRadians(180.f - 45.f) + MathConstants<float>::twoPi;
     auto range = getRange();
     auto sliderBounds = getSliderBounds();
+    g.setColour(Colours::red);
+    g.drawRect(getLocalBounds());
 
     getLookAndFeel().drawRotarySlider(g,
         sliderBounds.getX(),
@@ -65,7 +67,15 @@ void RotarySliderWithLabels::paint(juce::Graphics& g) {
 }
 
 juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const {
-    return getLocalBounds();
+    //return getLocalBounds();
+    auto bounds = getLocalBounds();
+    auto size = juce::jmin(bounds.getWidth(), bounds.getHeight());
+    size -= getTextHeight() * 2;
+    juce::Rectangle<int> r;
+    r.setSize(size, size);
+    r.setCentre(bounds.getCentreX(), bounds.getCentreY());
+    r.setY(2);
+    return r;
 }
 //==============================================================================
 ResponseCurveComponent::ResponseCurveComponent(SimpleEQAudioProcessor& p) : audioProcessor(p) {
