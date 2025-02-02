@@ -67,11 +67,10 @@ void RotarySliderWithLabels::paint(juce::Graphics& g) {
     auto range = getRange();
     auto sliderBounds = getSliderBounds();
 
-    //g.setColour(Colours::red);
-    //g.drawRect(getLocalBounds());
-    //g.setColour(Colours::yellow);
-    //g.drawRect(sliderBounds);
-
+    g.setColour(Colours::red);
+    g.drawRect(getLocalBounds());
+    g.setColour(Colours::yellow);
+    g.drawRect(sliderBounds);
 
     getLookAndFeel().drawRotarySlider(g,
         sliderBounds.getX(),
@@ -82,9 +81,34 @@ void RotarySliderWithLabels::paint(juce::Graphics& g) {
         startAng,
         endAng,
         *this);
+
+    auto center = sliderBounds.toFloat().getCentre();
+    auto radius = sliderBounds.getWidth() * 0.5f;
+
+    g.setColour(Colour(0u, 172u, 1u));
+    g.setFont(getTextHeight());
+
+    auto numChoices = labels.size();
+    for (int i = 0; i < numChoices; ++i) 
+    {
+        auto pos = labels[i].pos;
+        jassert(0.f <= pos);
+        jassert(pos <= 1.f);
+        auto ang = jmap(pos, 0.f, 1.f, startAng, endAng);
+
+        auto c = center.getPointOnCircumference(radius + getTextHeight() * 0.5f + 1, ang);
+
+        Rectangle<float> r;
+        auto str = labels[i].label;
+        r.setSize(g.getCurrentFont().getStringWidth(str), getTextHeight());
+        r.setCentre(c);
+        r.setY(r.getY() + getTextHeight());
+        g.drawFittedText(str, r.toNearestInt(), juce::Justification::verticallyCentred, 1);
+    }
 }
 
-juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const {
+juce::Rectangle<int> RotarySliderWithLabels::getSliderBounds() const 
+{
     auto bounds = getLocalBounds();
     auto size = juce::jmin(bounds.getWidth(), bounds.getHeight());
     size -= getTextHeight() * 2;
@@ -243,26 +267,31 @@ void ResponseCurveComponent::paint(juce::Graphics& g)
 
 //==============================================================================
 SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor(SimpleEQAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p),
-    peakFreqSlider(*audioProcessor.apvts.getParameter("PeakFreq"), "Hz"),
-    peakGainSlider(*audioProcessor.apvts.getParameter("PeakGain"), "dB"),
-    peakQualitySlider(*audioProcessor.apvts.getParameter("PeakQuality"), ""),
-    lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCutFreq"), "Hz"),
-    highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCutFreq"), "Hz"),
-    lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCutSlope"), "db/Oct"),
-    highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCutSlope"), "dB/Oct"),
+    :   AudioProcessorEditor(&p), 
+        audioProcessor(p),
+        peakFreqSlider(*audioProcessor.apvts.getParameter("PeakFreq"), "Hz"),
+        peakGainSlider(*audioProcessor.apvts.getParameter("PeakGain"), "dB"),
+        peakQualitySlider(*audioProcessor.apvts.getParameter("PeakQuality"), ""),
+        lowCutFreqSlider(*audioProcessor.apvts.getParameter("LowCutFreq"), "Hz"),
+        highCutFreqSlider(*audioProcessor.apvts.getParameter("HighCutFreq"), "Hz"),
+        lowCutSlopeSlider(*audioProcessor.apvts.getParameter("LowCutSlope"), "db/Oct"),
+        highCutSlopeSlider(*audioProcessor.apvts.getParameter("HighCutSlope"), "dB/Oct"),
 
-    responseCurveComponent(audioProcessor),
-    peakFreqSliderAttachment(audioProcessor.apvts, "PeakFreq", peakFreqSlider),
-    peakGainSliderAttachment(audioProcessor.apvts, "PeakGain", peakGainSlider),
-    peakQualitySliderAttachment(audioProcessor.apvts, "PeakQuality", peakQualitySlider),
-    lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCutFreq", lowCutFreqSlider),
-    highCutFreqSliderAttachment(audioProcessor.apvts, "HighCutFreq", highCutFreqSlider),
-    lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCutSlope", lowCutSlopeSlider),
-    highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCutSlope", highCutSlopeSlider)
+        responseCurveComponent(audioProcessor),
+        peakFreqSliderAttachment(audioProcessor.apvts, "PeakFreq", peakFreqSlider),
+        peakGainSliderAttachment(audioProcessor.apvts, "PeakGain", peakGainSlider),
+        peakQualitySliderAttachment(audioProcessor.apvts, "PeakQuality", peakQualitySlider),
+        lowCutFreqSliderAttachment(audioProcessor.apvts, "LowCutFreq", lowCutFreqSlider),
+        highCutFreqSliderAttachment(audioProcessor.apvts, "HighCutFreq", highCutFreqSlider),
+        lowCutSlopeSliderAttachment(audioProcessor.apvts, "LowCutSlope", lowCutSlopeSlider),
+        highCutSlopeSliderAttachment(audioProcessor.apvts, "HighCutSlope", highCutSlopeSlider)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+
+    peakFreqSlider.labels.add({ 0.f, "20hz" });
+    peakFreqSlider.labels.add({ 1.f, "20Khz" });
+
     for (auto* comp : getComps())
     {
         addAndMakeVisible(comp);
