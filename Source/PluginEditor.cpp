@@ -158,6 +158,7 @@ void ResponseCurveComponent::resized()
     const int fontHeight = 10;
     g.setFont(fontHeight);
 
+    // draw frequency labels
     for (int i = 0; i < freqs.size(); ++i)
     {
         auto f = freqs[i];
@@ -184,6 +185,28 @@ void ResponseCurveComponent::resized()
 
         g.drawFittedText(str, r, juce::Justification::centred, 1);
     }
+
+    // draw gain labels
+    for (auto gDb : gain)
+    {
+        auto y = jmap(gDb, -24.f, 24.f, float(bottom), float(top));
+        String str;
+        if (gDb > 0)
+            str << "+";
+        str << gDb;
+        auto textWidth = g.getCurrentFont().getStringWidth(str);
+
+        Rectangle<int> r;
+        r.setSize(textWidth, fontHeight);
+
+        r.setX(getWidth() - textWidth);
+        r.setCentre(r.getCentreX(), y);
+
+        g.setColour(gDb == 0.f ? Colour(0u, 172u, 1u) : Colours::lightgrey);
+
+        g.drawFittedText(str, r, juce::Justification::centred, 1);
+    }
+
 }
 
 juce::Rectangle<int> ResponseCurveComponent::getRenderArea()
