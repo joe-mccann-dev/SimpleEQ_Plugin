@@ -72,6 +72,7 @@ struct ResponseCurveComponent : juce::Component,
     void timerCallback() override;
 
     void paint(juce::Graphics& g) override; 
+    void resized() override;
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -80,6 +81,12 @@ private:
     juce::Atomic<bool> parametersChanged{ false };
     MonoChain monoChain;
     void updateChain();
+
+    juce::Image background;
+
+    juce::Rectangle<int> getRenderArea();
+
+    juce::Rectangle<int> getAnalysisArea();
 };
 
 class SimpleEQAudioProcessorEditor  : public juce::AudioProcessorEditor
