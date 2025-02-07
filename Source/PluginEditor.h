@@ -223,6 +223,11 @@ struct ResponseCurveComponent : juce::Component,
     void paint(juce::Graphics& g) override; 
     void resized() override;
 
+    void toggleAnalysisEnablement(bool enabled)
+    {
+        shouldShowFFTAnalysis = enabled;
+    }
+
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -236,6 +241,8 @@ private:
     juce::Rectangle<int> getAnalysisArea();
 
     PathProducer leftPathProducer, rightPathProducer;
+
+    bool shouldShowFFTAnalysis = true;
 };
 
 struct PowerButton : juce::ToggleButton {};
