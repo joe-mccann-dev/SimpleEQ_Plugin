@@ -50,13 +50,15 @@ void LookAndFeel::drawRotarySlider(
         p.applyTransform(AffineTransform().rotated(sliderAngRad, center.getX(), center.getY()));
         g.fillPath(p);
         g.setFont(rswl->getTextHeight());
+
         auto text = rswl->getDisplayString();
         auto strWidth = g.getCurrentFont().getStringWidth(text);
+
         r.setSize(strWidth + 4, rswl->getTextHeight() + 2);
         r.setCentre(bounds.getCentre());
-        g.setColour(Colour(20u, 20u, 20u));
+        g.setColour(enabled ? Colour(20u, 20u, 20u) : Colours::darkgrey);
         g.fillRect(r);
-        g.setColour(Colour(250u, 250u, 250u));
+        g.setColour(enabled ? Colour(250u, 250u, 250u) : Colours::lightgrey );
         g.drawFittedText(text, r.toNearestInt(), juce::Justification::centred, 1);
     }
 
